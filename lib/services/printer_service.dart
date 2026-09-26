@@ -16,7 +16,7 @@ class PrinterService {
   }
 
   Future<void> putuskan() {
-    return PrintBluetoothThermal.disconnect();
+    return PrintBluetoothThermal.disconnect;
   }
 
   Future<void> cetakPesanan(TokoOrder order) async {
