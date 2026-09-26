@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /orders/{orderId} {
+      // Web pemesanan (dari mana saja) boleh MEMBUAT pesanan baru.
+      allow create: if true;
+
+      // Membaca & mengubah status dibiarkan terbuka untuk MVP ini,
+      // supaya app penerima bisa langsung jalan tanpa sistem login dulu.
+      //
+      // CATATAN PENTING: karena terbuka, siapa pun yang tahu 'tokoId'
+      // sebuah toko bisa ikut membaca pesanan toko itu. Untuk versi
+      // produksi/banyak pengguna, tambahkan Firebase Authentication dan
+      // ganti baris di bawah menjadi pengecekan token milik toko terkait.
+      allow read, update: if true;
+      allow delete: if false;
+    }
+  }
+}

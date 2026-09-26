@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "935786954216",
+    "project_id": "umkm-b7684",
+    "storage_bucket": "umkm-b7684.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:935786954216:android:9e146f3fa16583599eb85d",
+        "android_client_info": {
+          "package_name": "com.umkm.penerima_pesanan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2osqusPos7Psdx9CTLWHQtqdTDUeTMmo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

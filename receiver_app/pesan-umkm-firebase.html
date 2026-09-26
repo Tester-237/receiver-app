@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kedai Nusantara — Pesan</title>
+<!--
+  ====== CARA PAKAI FILE INI UNTUK TOKO BARU ======
+  1. Isi TOKO_ID dan TOKO_NAMA di bawah (unik per toko, harus SAMA PERSIS
+     dengan kode toko yang dimasukkan di aplikasi penerima Android-nya).
+  2. Isi firebaseConfig dengan config project Firebase kamu (Project
+     Settings > General > Your apps > Web app, di Firebase Console).
+  3. Upload file ini ke Firebase Hosting (lihat README.md di project
+     aplikasi Android untuk langkah lengkapnya).
+-->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "ISI_DARI_FIREBASE_CONSOLE",
+    authDomain: "ISI_DARI_FIREBASE_CONSOLE",
+    projectId: "ISI_DARI_FIREBASE_CONSOLE",
+    storageBucket: "ISI_DARI_FIREBASE_CONSOLE",
+    messagingSenderId: "ISI_DARI_FIREBASE_CONSOLE",
+    appId: "ISI_DARI_FIREBASE_CONSOLE",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.TOKO_ID = "kedai-nusantara"; // ganti unik per toko
+  window.TOKO_NAMA = "Kedai Nusantara";
+
+  window.kirimPesananKeFirestore = async (payload) => {
+    await addDoc(collection(db, "orders"), {
+      ...payload,
+      tokoId: window.TOKO_ID,
+      tokoNama: window.TOKO_NAMA,
+      status: "baru",
+      createdAt: serverTimestamp(),
+    });
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FAF6EC; --ink:#231F18; --green:#24402E; --green-dk:#182B1F;
+  --gold:#D9A22C; --chili:#B03A2E; --line:#E4DCC8; --card:#FFFFFF;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+html,body{height:100%;margin:0;}
+body{
+  background:var(--cream); color:var(--ink);
+  font-family:'Work Sans',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:90px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --cream:#1B1913; --ink:#F1ECDD; --card:#2A271E; --line:#3A362A;
+  }
+}
+:root[data-theme="dark"]{
+  --cream:#1B1913; --ink:#F1ECDD; --card:#2A271E; --line:#3A362A;
+}
+h1,h2,h3{font-family:'Fraunces',serif; margin:0;}
+header.top{
+  padding:24px 20px 16px; background:var(--green); color:var(--cream);
+  padding-top:calc(24px + env(safe-area-inset-top,0px));
+  border-bottom:4px solid var(--gold);
+}
+header.top h1{font-size:26px; font-weight:700; letter-spacing:.2px;}
+header.top p{margin:4px 0 18px; font-size:14px; opacity:.85;}
+.search{
+  display:flex; align-items:center; gap:8px;
+  background:var(--cream); border-radius:10px; padding:10px 14px;
+}
+.search input{
+  border:none; outline:none; background:transparent; width:100%;
+  font-family:'Work Sans',sans-serif; font-size:15px; color:var(--ink);
+}
+.search svg{flex-shrink:0; opacity:.6;}
+
+.tabs{
+  display:flex; gap:8px; padding:14px 20px 4px; overflow-x:auto;
+}
+.tab{
+  padding:8px 16px; border-radius:999px; border:1.5px solid var(--line);
+  background:var(--card); font-size:14px; font-weight:500; white-space:nowrap;
+  cursor:pointer; color:var(--ink);
+}
+.tab.active{background:var(--green); border-color:var(--green); color:#fff;}
+
+.catheading{
+  padding:16px 20px 2px; font-size:19px; font-weight:700; color:var(--ink);
+}
+
+.grid{
+  padding:10px 20px 20px; display:grid; grid-template-columns:1fr 1fr; gap:12px;
+}
+@media (min-width:560px){ .grid{grid-template-columns:1fr 1fr 1fr;} }
+
+.item{
+  background:var(--card); border:1px solid var(--line); border-radius:14px;
+  padding:14px; display:flex; flex-direction:column; gap:6px;
+}
+.item .cat{font-size:11px; text-transform:lowercase; color:var(--gold); font-weight:600;}
+.item h3{font-size:16px; line-height:1.25;}
+.item .price{font-size:14px; color:var(--chili); font-weight:600; margin-top:2px;}
+.item .qtyrow{
+  margin-top:auto; padding-top:10px; display:flex; align-items:center; justify-content:space-between;
+}
+.stepper{display:flex; align-items:center; gap:10px;}
+.stepper button{
+  width:30px; height:30px; border-radius:8px; border:1.5px solid var(--green);
+  background:var(--cream); color:var(--green); font-size:16px; font-weight:700;
+  cursor:pointer; line-height:1;
+}
+.stepper button:disabled{opacity:.35; cursor:default;}
+.stepper span{min-width:16px; text-align:center; font-weight:600;}
+.addbtn{
+  width:100%; padding:8px; border-radius:8px; border:none; background:var(--green);
+  color:#fff; font-weight:600; font-size:13px; cursor:pointer;
+}
+.empty{padding:40px 20px; text-align:center; opacity:.6; font-size:14px;}
+
+.cartbar{
+  position:fixed; left:16px; right:16px; bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  background:var(--green); color:#fff; border-radius:14px; padding:14px 18px;
+  display:none; align-items:center; justify-content:space-between; cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:20;
+}
+.cartbar.show{display:flex;}
+.cartbar .left{display:flex; flex-direction:column;}
+.cartbar .count{font-size:12px; opacity:.85;}
+.cartbar .total{font-family:'Fraunces',serif; font-size:18px; font-weight:700;}
+.cartbar .cta{font-size:14px; font-weight:600; background:var(--gold); color:var(--green-dk); padding:9px 16px; border-radius:9px;}
+
+.sheet-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:30; display:none;
+}
+.sheet-overlay.show{display:block;}
+.sheet{
+  position:fixed; left:0; right:0; bottom:0; background:var(--cream); z-index:31;
+  border-radius:20px 20px 0 0; max-height:88vh; overflow-y:auto;
+  transform:translateY(100%); transition:transform .25s ease;
+  padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));
+}
+.sheet.show{transform:translateY(0);}
+.sheet-head{
+  padding:18px 20px 10px; display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--cream);
+}
+.sheet-head h2{font-size:20px;}
+.sheet-head button.close{
+  border:none; background:none; font-size:20px; cursor:pointer; color:var(--ink); opacity:.6;
+}
+.sheet-body{padding:12px 20px 20px;}
+.cart-row{
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+  padding:12px 0; border-bottom:1px solid var(--line);
+}
+.cart-row .info h4{font-size:15px; font-weight:600; font-family:'Work Sans',sans-serif;}
+.cart-row .info span{font-size:13px; color:var(--chili);}
+.totals{
+  display:flex; justify-content:space-between; padding:16px 0 6px; font-weight:700; font-size:17px;
+  font-family:'Fraunces',serif;
+}
+.field{margin-top:14px;}
+.field label{font-size:13px; font-weight:600; display:block; margin-bottom:6px;}
+.field input{
+  width:100%; padding:12px 14px; border-radius:10px; border:1.5px solid var(--line);
+  background:var(--card); color:var(--ink); font-size:15px; font-family:'Work Sans',sans-serif; outline:none;
+}
+.field input:focus{border-color:var(--green);}
+.primary-btn{
+  width:100%; margin-top:18px; padding:14px; border:none; border-radius:12px;
+  background:var(--green); color:#fff; font-weight:700; font-size:15px; cursor:pointer;
+}
+.primary-btn:disabled{opacity:.4; cursor:default;}
+.ghost-btn{
+  width:100%; margin-top:10px; padding:12px; border-radius:12px; border:1.5px solid var(--line);
+  background:transparent; color:var(--ink); font-weight:600; font-size:14px; cursor:pointer;
+}
+.err{color:var(--chili); font-size:12px; margin-top:6px; display:none;}
+
+.confirm-screen{padding:8px 4px 4px; text-align:center;}
+.confirm-screen .badge{
+  width:56px; height:56px; border-radius:50%; background:var(--green); color:#fff;
+  display:flex; align-items:center; justify-content:center; margin:6px auto 14px; font-size:26px;
+}
+.confirm-screen h2{font-size:22px; margin-bottom:6px;}
+.confirm-screen p.sub{font-size:14px; opacity:.7; margin-bottom:18px;}
+.order-id{
+  display:inline-block; background:var(--gold); color:var(--green-dk); font-weight:700;
+  padding:6px 14px; border-radius:999px; font-size:13px; margin-bottom:16px;
+}
+.recap{text-align:left; border-top:1px solid var(--line); padding-top:12px;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Kedai Nusantara</h1>
+  <p>Pilih menu, konfirmasi, lalu isi nomor meja &amp; nama kamu.</p>
+  <div class="search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="searchInput" type="text" placeholder="Cari menu...">
+  </div>
+</header>
+
+<div class="tabs" id="tabs"></div>
+<h2 class="catheading" id="catHeading">Semua Menu</h2>
+<div class="grid" id="grid"></div>
+<div class="empty" id="emptyMsg" style="display:none;">Menu tidak ditemukan.</div>
+
+<div class="cartbar" id="cartBar">
+  <div class="left">
+    <span class="count" id="cartCount">0 item</span>
+    <span class="total" id="cartTotal">Rp0</span>
+  </div>
+  <div class="cta">Lihat Pesanan</div>
+</div>
+
+<div class="sheet-overlay" id="overlay"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-head">
+    <h2 id="sheetTitle">Pesanan Kamu</h2>
+    <button class="close" id="closeBtn" aria-label="Tutup">✕</button>
+  </div>
+  <div class="sheet-body" id="sheetBody"></div>
+</div>
+
+<script>
+const MENU = [
+  {id:1, name:"Nasi Goreng Spesial", cat:"makanan", price:20000},
+  {id:2, name:"Mie Ayam Bakso", cat:"makanan", price:18000},
+  {id:3, name:"Ayam Geprek Sambal", cat:"makanan", price:22000},
+  {id:4, name:"Nasi Uduk Komplit", cat:"makanan", price:17000},
+  {id:5, name:"Es Teh Manis", cat:"minuman", price:5000},
+  {id:6, name:"Es Jeruk Peras", cat:"minuman", price:6000},
+  {id:7, name:"Kopi Susu Gula Aren", cat:"minuman", price:12000},
+  {id:8, name:"Air Mineral", cat:"minuman", price:4000},
+  {id:9, name:"Tahu Isi", cat:"camilan", price:8000},
+  {id:10, name:"Pisang Goreng", cat:"camilan", price:10000},
+  {id:11, name:"Kentang Goreng", cat:"camilan", price:12000},
+  {id:12, name:"Cireng Bumbu Rujak", cat:"camilan", price:9000},
+];
+const CATS = [["semua","Semua"],["makanan","Makanan"],["minuman","Minuman"],["camilan","Camilan"]];
+
+let activeCat = "semua";
+let searchQ = "";
+let cart = {}; // id -> qty
+let stage = "menu"; // menu | cart | form | done
+
+const fmt = n => "Rp" + n.toLocaleString("id-ID");
+
+function renderTabs(){
+  const el = document.getElementById("tabs");
+  el.innerHTML = CATS.map(([key,label]) =>
+    `<div class="tab ${activeCat===key?'active':''}" data-cat="${key}">${label}</div>`).join("");
+  el.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+    activeCat = t.dataset.cat; renderTabs(); renderGrid();
+  }));
+}
+
+function renderGrid(){
+  const grid = document.getElementById("grid");
+  const headingText = CATS.find(([key])=>key===activeCat)[1];
+  document.getElementById("catHeading").textContent =
+    activeCat==="semua" ? "Semua Menu" : headingText;
+  const items = MENU.filter(m =>
+    (activeCat==="semua" || m.cat===activeCat) &&
+    m.name.toLowerCase().includes(searchQ.toLowerCase())
+  );
+  document.getElementById("emptyMsg").style.display = items.length? "none":"block";
+  grid.innerHTML = items.map(m=>{
+    const qty = cart[m.id]||0;
+    return `<div class="item">
+      <span class="cat">${m.cat}</span>
+      <h3>${m.name}</h3>
+      <span class="price">${fmt(m.price)}</span>
+      <div class="qtyrow">
+        ${qty===0
+          ? `<button class="addbtn" data-add="${m.id}">Tambah</button>`
+          : `<div class="stepper">
+               <button data-dec="${m.id}">−</button>
+               <span>${qty}</span>
+               <button data-inc="${m.id}">+</button>
+             </div>`
+        }
+      </div>
+    </div>`;
+  }).join("");
+  grid.querySelectorAll("[data-add]").forEach(b=>b.addEventListener("click",()=>{changeQty(+b.dataset.add,1);}));
+  grid.querySelectorAll("[data-inc]").forEach(b=>b.addEventListener("click",()=>{changeQty(+b.dataset.inc,1);}));
+  grid.querySelectorAll("[data-dec]").forEach(b=>b.addEventListener("click",()=>{changeQty(+b.dataset.dec,-1);}));
+}
+
+function changeQty(id, delta){
+  const next = (cart[id]||0) + delta;
+  if(next<=0) delete cart[id]; else cart[id]=next;
+  renderGrid();
+  renderCartBar();
+}
+
+function cartItems(){
+  return Object.entries(cart).map(([id,qty])=>{
+    const m = MENU.find(x=>x.id==id);
+    return {...m, qty, subtotal:m.price*qty};
+  });
+}
+function cartTotal(){ return cartItems().reduce((s,i)=>s+i.subtotal,0); }
+function cartCount(){ return cartItems().reduce((s,i)=>s+i.qty,0); }
+
+function renderCartBar(){
+  const bar = document.getElementById("cartBar");
+  const n = cartCount();
+  bar.classList.toggle("show", n>0 && stage==="menu");
+  document.getElementById("cartCount").textContent = n + " item";
+  document.getElementById("cartTotal").textContent = fmt(cartTotal());
+}
+
+document.getElementById("cartBar").addEventListener("click",()=>{
+  stage="cart"; openSheet();
+});
+document.getElementById("searchInput").addEventListener("input",e=>{
+  searchQ = e.target.value; renderGrid();
+});
+document.getElementById("closeBtn").addEventListener("click", closeSheet);
+document.getElementById("overlay").addEventListener("click", closeSheet);
+
+function openSheet(){
+  document.getElementById("overlay").classList.add("show");
+  document.getElementById("sheet").classList.add("show");
+  renderSheet();
+}
+function closeSheet(){
+  document.getElementById("overlay").classList.remove("show");
+  document.getElementById("sheet").classList.remove("show");
+  if(stage!=="done"){ stage="menu"; renderCartBar(); }
+}
+
+function renderSheet(){
+  const body = document.getElementById("sheetBody");
+  const title = document.getElementById("sheetTitle");
+  if(stage==="cart"){
+    title.textContent = "Pesanan Kamu";
+    const items = cartItems();
+    body.innerHTML = items.map(i=>`
+      <div class="cart-row">
+        <div class="info">
+          <h4>${i.name}</h4>
+          <span>${i.qty} × ${fmt(i.price)}</span>
+        </div>
+        <div class="stepper">
+          <button data-dec="${i.id}">−</button>
+          <span>${i.qty}</span>
+          <button data-inc="${i.id}">+</button>
+        </div>
+      </div>`).join("")
+      + `<div class="totals"><span>Total</span><span>${fmt(cartTotal())}</span></div>
+         <button class="primary-btn" id="toFormBtn" ${items.length?"":"disabled"}>Konfirmasi Pesanan</button>
+         <button class="ghost-btn" id="backShopBtn">Tambah Menu Lagi</button>`;
+    body.querySelectorAll("[data-inc]").forEach(b=>b.addEventListener("click",()=>{changeQty(+b.dataset.inc,1); renderSheet(); renderCartBar();}));
+    body.querySelectorAll("[data-dec]").forEach(b=>b.addEventListener("click",()=>{changeQty(+b.dataset.dec,-1); renderSheet(); renderCartBar();}));
+    document.getElementById("backShopBtn").addEventListener("click", closeSheet);
+    document.getElementById("toFormBtn").addEventListener("click",()=>{
+      if(!cartItems().length) return;
+      stage="form"; renderSheet();
+    });
+  } else if(stage==="form"){
+    title.textContent = "Detail Pesanan";
+    body.innerHTML = `
+      <div class="totals" style="padding-top:0;"><span>Total (${cartCount()} item)</span><span>${fmt(cartTotal())}</span></div>
+      <div class="field">
+        <label for="tableInput">Nomor Meja</label>
+        <input id="tableInput" type="text" inputmode="numeric" placeholder="contoh: 7">
+      </div>
+      <div class="field">
+        <label for="nameInput">Nama Pemesan</label>
+        <input id="nameInput" type="text" placeholder="contoh: Dinda">
+      </div>
+      <div class="err" id="formErr">Isi nomor meja dan nama dulu ya.</div>
+      <button class="primary-btn" id="submitBtn">Kirim Pesanan</button>
+      <button class="ghost-btn" id="backCartBtn">Kembali</button>
+    `;
+    document.getElementById("backCartBtn").addEventListener("click",()=>{stage="cart"; renderSheet();});
+    document.getElementById("submitBtn").addEventListener("click", submitOrder);
+  } else if(stage==="done"){
+    title.textContent = "";
+    const items = cartItems();
+    const orderId = "KN-" + Math.floor(1000+Math.random()*9000);
+    body.innerHTML = `
+      <div class="confirm-screen">
+        <div class="badge">✓</div>
+        <h2>Pesanan Terkirim</h2>
+        <p class="sub">Meja ${lastOrder.table} — atas nama ${lastOrder.name}</p>
+        <div class="order-id">${orderId}</div>
+        <div class="recap">
+          ${items.map(i=>`<div class="cart-row"><div class="info"><h4>${i.name}</h4><span>${i.qty} × ${fmt(i.price)}</span></div><span>${fmt(i.subtotal)}</span></div>`).join("")}
+          <div class="totals"><span>Total</span><span>${fmt(cartTotal())}</span></div>
+        </div>
+        <button class="primary-btn" id="newOrderBtn">Pesanan Baru</button>
+      </div>
+    `;
+    document.getElementById("newOrderBtn").addEventListener("click",()=>{
+      cart = {}; stage="menu"; closeSheet(); renderGrid(); renderCartBar();
+    });
+  }
+}
+
+let lastOrder = null;
+async function submitOrder(){
+  const table = document.getElementById("tableInput").value.trim();
+  const name = document.getElementById("nameInput").value.trim();
+  const errEl = document.getElementById("formErr");
+  if(!table || !name){
+    errEl.textContent = "Isi nomor meja dan nama dulu ya.";
+    errEl.style.display = "block";
+    return;
+  }
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.textContent = "Mengirim...";
+  try{
+    const items = cartItems().map(i => ({nama:i.name, qty:i.qty, harga:i.price}));
+    await window.kirimPesananKeFirestore({
+      meja: table, nama: name, items, total: cartTotal(),
+    });
+    lastOrder = {table, name};
+    stage = "done";
+    renderSheet();
+  }catch(e){
+    console.error(e);
+    errEl.textContent = "Gagal mengirim pesanan. Coba lagi ya.";
+    errEl.style.display = "block";
+    btn.disabled = false;
+    btn.textContent = "Kirim Pesanan";
+  }
+}
+
+renderTabs();
+renderGrid();
+renderCartBar();
+</script>
+</body>
+</html>
