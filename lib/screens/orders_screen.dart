@@ -49,8 +49,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
         shrinkWrap: true,
         children: devices
             .map((d) => ListTile(
-                  title: Text(d.name ?? 'Tanpa nama'),
-                  subtitle: Text(d.address),
+                  title: Text(d.name),
+                  subtitle: Text(d.macAdress),
                   onTap: () async {
                     Navigator.pop(context);
                     await _printer.sambungkan(d);
