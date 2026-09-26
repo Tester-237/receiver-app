@@ -1,48 +1,65 @@
-import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
+import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import '../models/order.dart';
 
-/// Membungkus paket blue_thermal_printer supaya sisa app tidak perlu tahu
-/// detail Bluetooth/ESC-POS-nya.
 class PrinterService {
-  final BlueThermalPrinter _printer = BlueThermalPrinter.instance;
-
-  Future<List<BluetoothDevice>> daftarPrinterTerpasang() {
-    return _printer.getBondedDevices();
+  Future<List<BluetoothInfo>> daftarPrinterTerpasang() {
+    return PrintBluetoothThermal.pairedBluetooths;
   }
 
-  Future<bool> isTersambung() async {
-    return await _printer.isConnected ?? false;
+  Future<bool> isTersambung() {
+    return PrintBluetoothThermal.connectionStatus;
   }
 
-  Future<void> sambungkan(BluetoothDevice device) async {
-    await _printer.connect(device);
+  Future<bool> sambungkan(BluetoothInfo device) {
+    return PrintBluetoothThermal.connect(macPrinterAddress: device.macAdress);
   }
 
-  Future<void> putuskan() async {
-    await _printer.disconnect();
+  Future<void> putuskan() {
+    return PrintBluetoothThermal.disconnect();
   }
 
-  /// Cetak 1 struk pesanan ke kertas kecil (biasanya 58mm).
   Future<void> cetakPesanan(TokoOrder order) async {
-    _printer.printCustom(order.tokoNama, 3, 1); // besar, tengah
-    _printer.printNewLine();
-    _printer.printLeftRight('Meja', order.meja, 1);
-    _printer.printLeftRight('Nama', order.nama, 1);
-    _printer.printCustom('--------------------------------', 1, 1);
+    final profile = await CapabilityProfile.load();
+    final generator = Generator(PaperSize.mm58, profile);
+    List<int> bytes = [];
+
+    bytes += generator.text(
+      order.tokoNama,
+      styles: const PosStyles(
+        align: PosAlign.center,
+        bold: true,
+        height: PosTextSize.size2,
+        width: PosTextSize.size2,
+      ),
+    );
+    bytes += generator.hr();
+    bytes += generator.row([
+      PosColumn(text: 'Meja', width: 6),
+      PosColumn(text: order.meja, width: 6, styles: const PosStyles(align: PosAlign.right)),
+    ]);
+    bytes += generator.row([
+      PosColumn(text: 'Nama', width: 6),
+      PosColumn(text: order.nama, width: 6, styles: const PosStyles(align: PosAlign.right)),
+    ]);
+    bytes += generator.hr();
 
     for (final item in order.items) {
-      _printer.printLeftRight(
-        '${item.qty}x ${item.nama}',
-        _rupiah(item.subtotal),
-        1,
-      );
+      bytes += generator.row([
+        PosColumn(text: '${item.qty}x ${item.nama}', width: 8),
+        PosColumn(text: _rupiah(item.subtotal), width: 4, styles: const PosStyles(align: PosAlign.right)),
+      ]);
     }
 
-    _printer.printCustom('--------------------------------', 1, 1);
-    _printer.printLeftRight('TOTAL', _rupiah(order.total), 2);
-    _printer.printNewLine();
-    _printer.printNewLine();
-    _printer.paperCut();
+    bytes += generator.hr();
+    bytes += generator.row([
+      PosColumn(text: 'TOTAL', width: 6, styles: const PosStyles(bold: true)),
+      PosColumn(text: _rupiah(order.total), width: 6, styles: const PosStyles(align: PosAlign.right, bold: true)),
+    ]);
+    bytes += generator.feed(2);
+    bytes += generator.cut();
+
+    await PrintBluetoothThermal.writeBytes(bytes);
   }
 
   String _rupiah(int n) {
