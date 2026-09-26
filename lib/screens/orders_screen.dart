@@ -50,7 +50,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
         children: devices
             .map((d) => ListTile(
                   title: Text(d.name ?? 'Tanpa nama'),
-                  subtitle: Text(d.address ?? ''),
+                  subtitle: Text(d.address),
                   onTap: () async {
                     Navigator.pop(context);
                     await _printer.sambungkan(d);
