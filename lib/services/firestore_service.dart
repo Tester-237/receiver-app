@@ -6,14 +6,12 @@ import '../models/order.dart';
 class FirestoreService {
   final _db = FirebaseFirestore.instance;
 
-  /// Stream pesanan yang masih 'baru' untuk 1 toko tertentu, terurut dari
-  /// yang paling lama supaya dicetak sesuai urutan masuk.
+  /// Stream pesanan yang masih 'baru' untuk 1 toko tertentu.
   Stream<List<TokoOrder>> ordersBaru(String tokoId) {
     return _db
         .collection('orders')
         .where('tokoId', isEqualTo: tokoId)
         .where('status', isEqualTo: 'baru')
-        .orderBy('createdAt')
         .snapshots()
         .map((snap) => snap.docs
             .map((d) => TokoOrder.fromFirestore(d.id, d.data()))
